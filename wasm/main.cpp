@@ -146,6 +146,7 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
 
   LiInitializeServerInformation(&serverInfo);
   serverInfo.address = me->m_Host.c_str();
+  serverInfo.ports = me->m_ports.c_str();
   serverInfo.serverInfoAppVersion = me->m_AppVersion.c_str();
   serverInfo.serverInfoGfeVersion = me->m_GfeVersion.c_str();
 
@@ -177,7 +178,7 @@ static void HexStringToBytes(const char* str, char* output) {
 }
 
 MessageResult MoonlightInstance::StartStream(
-    std::string host, std::string width, std::string height, std::string fps,
+    std::string host, std::string ports, std::string width, std::string height, std::string fps,
     std::string bitrate, std::string rikey, std::string rikeyid,
     std::string appversion, std::string gfeversion, bool framePacing,
     bool audioSync) {
@@ -185,6 +186,7 @@ MessageResult MoonlightInstance::StartStream(
   PostToJs("Setting stream height to: " + height);
   PostToJs("Setting stream fps to: " + fps);
   PostToJs("Setting stream host to: " + host);
+  PostToJs("Setting stream ports to: " + ports);
   PostToJs("Setting stream bitrate to: " + bitrate);
   PostToJs("Setting rikey to: " + rikey);
   PostToJs("Setting rikeyid to: " + rikeyid);
@@ -203,7 +205,7 @@ MessageResult MoonlightInstance::StartStream(
   m_StreamConfig.streamingRemotely = STREAM_CFG_AUTO;
   m_StreamConfig.packetSize = 1392;
   m_StreamConfig.supportsHevc = true;
-  //m_StreamConfig.enableHdr = true;
+  m_StreamConfig.enableHdr = true;
 
   // Load the rikey and rikeyid into the stream configuration
   HexStringToBytes(rikey.c_str(), m_StreamConfig.remoteInputAesKey);
@@ -212,6 +214,7 @@ MessageResult MoonlightInstance::StartStream(
 
   // Store the parameters from the start message
   m_Host = host;
+  m_ports = ports;
   m_AppVersion = appversion;
   m_GfeVersion = gfeversion;
   m_FramePacingEnabled = framePacing;
@@ -258,10 +261,10 @@ void MoonlightInstance::STUN(int callbackId) {
 
 void MoonlightInstance::Pair_private(int callbackId,
                                      std::string serverMajorVersion,
-                                     std::string address,
+                                     std::string address, std::string ports,
                                      std::string randomNumber) {
   char* ppkstr;
-  int err = gs_pair(atoi(serverMajorVersion.c_str()), address.c_str(),
+  int err = gs_pair(atoi(serverMajorVersion.c_str()), address.c_str(), ports.c_str(),
                     randomNumber.c_str(), &ppkstr);
 
   printf("pair address: %s result: %d\n", address.c_str(), err);
@@ -274,11 +277,11 @@ void MoonlightInstance::Pair_private(int callbackId,
 }
 
 void MoonlightInstance::Pair(int callbackId, std::string serverMajorVersion,
-                             std::string address, std::string randomNumber) {
+                             std::string address, std::string ports,std::string randomNumber) {
   printf("%s address: %s\n", __func__, address.c_str());
   m_Dispatcher.post_job(
       std::bind(&MoonlightInstance::Pair_private, this, callbackId,
-                serverMajorVersion, address, randomNumber),
+                serverMajorVersion, address, ports, randomNumber),
       false);
 }
 
@@ -318,7 +321,7 @@ int main(int argc, char** argv) {
   }
   RAND_seed(buffer, 128);
 }
-MessageResult startStream(std::string host, std::string width,
+MessageResult startStream(std::string host, std::string ports, std::string width,
                           std::string height, std::string fps,
                           std::string bitrate, std::string rikey,
                           std::string rikeyid, std::string appversion,
@@ -326,7 +329,7 @@ MessageResult startStream(std::string host, std::string width,
                           bool audioSync) {
   printf("%s host: %s w: %s h: %s\n", __func__, host.c_str(),
          width.c_str(), height.c_str());
-  return g_Instance->StartStream(host, width, height, fps, bitrate, rikey,
+  return g_Instance->StartStream(host, ports, width, height, fps, bitrate, rikey,
                                  rikeyid, appversion, gfeversion, framePacing,
                                  audioSync);
 }
@@ -334,9 +337,9 @@ MessageResult startStream(std::string host, std::string width,
 MessageResult stopStream() { return g_Instance->StopStream(); }
 void stun(int callbackId) { g_Instance->STUN(callbackId); }
 
-void pair(int callbackId, std::string serverMajorVersion, std::string address,
+void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string ports,
           std::string randomNumber) {
-  g_Instance->Pair(callbackId, serverMajorVersion, address, randomNumber);
+  g_Instance->Pair(callbackId, serverMajorVersion, address, ports, randomNumber);
 }
 
 void PostToJs(std::string msg) {

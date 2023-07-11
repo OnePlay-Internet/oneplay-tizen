@@ -90,9 +90,10 @@ String.prototype.toHex = function() {
   return hex;
 }
 
-function NvHTTP(address, clientUid, userEnteredAddress = '') {
+function NvHTTP(address, clientUid, userEnteredAddress = '',ports= '47989') {
   console.log('%c[utils.js, NvHTTP Object]', 'color: gray;', this);
   this.address = address;
+  this.ports = ports;
   this.ppkstr = null;
   this.paired = false;
   this.currentGame = 0;
@@ -110,6 +111,7 @@ function NvHTTP(address, clientUid, userEnteredAddress = '') {
   this.gputype = '';
   this.numofapps = 0;
   this.hostname = address;
+  this.hostports = ports;
   this.externalIP = '';
   this._pollCompletionCallbacks = [];
 
@@ -165,20 +167,20 @@ NvHTTP.prototype = {
   },
 
   // refreshes the server info using a given address.  This is useful for testing whether we can successfully ping a host at a given address
-  refreshServerInfoAtAddress: function(givenAddress) {
+  refreshServerInfoAtAddress: function(givenAddress,givenports) {
     if (this.ppkstr == null) {
       // Use HTTP if we have no pinned cert
-      return sendMessage('openUrl', ['http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
+      return sendMessage('openUrl', ['http://' + givenAddress +':'+ givenports + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
           return this._parseServerInfo(retHttp);
       }.bind(this));
     }
 
     // try HTTPS first
-    return sendMessage('openUrl', ['https://' + givenAddress + ':47984' + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(ret) {
+    return sendMessage('openUrl', ['https://' + givenAddress +':'+ givenports + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(ret) {
       if (!this._parseServerInfo(ret)) { // if that fails
         console.log('%c[utils.js, utils.js, refreshServerInfoAtAddress]', 'color: gray;', 'Failed to parse serverinfo from HTTPS, falling back to HTTP');
         // try HTTP as a failover.  Useful to clients who aren't paired yet
-        return sendMessage('openUrl', ['http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
+        return sendMessage('openUrl', ['http://' + givenAddress +':'+ givenports + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
           return this._parseServerInfo(retHttp);
         }.bind(this));
       }
@@ -187,7 +189,7 @@ NvHTTP.prototype = {
         if (error == -100) { // GS_CERT_MISMATCH
           // Retry over HTTP
           console.warn('%c[utils.js, utils.js, refreshServerInfoAtAddress]', 'color: gray;', 'Certificate mismatch. Retrying over HTTP', this);
-          return sendMessage('openUrl', ['http://' + givenAddress + ':47989' + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
+          return sendMessage('openUrl', ['http://' + givenAddress +':'+ givenports + '/serverinfo?' + this._buildUidStr(), this.ppkstr, false]).then(function(retHttp) {
             return this._parseServerInfo(retHttp);
           }.bind(this));
         }
@@ -206,11 +208,12 @@ NvHTTP.prototype = {
       return;
     }
 
-    this.selectServerAddress(function(successfulAddress) {
+    this.selectServerAddress(function(successfulAddress,successfulPorts) {
       // Successfully determined server address. Update base URL.
       this.address = successfulAddress;
-      this._baseUrlHttps = 'https://' + successfulAddress + ':47984';
-      this._baseUrlHttp = 'http://' + successfulAddress + ':47989';
+      this.ports = successfulPorts;
+      this._baseUrlHttps = 'https://' + successfulAddress +':'+ successfulPorts;
+      this._baseUrlHttp = 'http://' + successfulAddress +':'+ successfulPorts;
 
       // Poll for the app list every 10 successful serverinfo polls.
       // Not including the first one to avoid PCs taking a while to show
@@ -243,17 +246,17 @@ NvHTTP.prototype = {
   // initially pings the server to try and figure out if it's routable by any means.
   selectServerAddress: function(onSuccess, onFailure) {
     // TODO: Deduplicate the addresses
-    this.refreshServerInfoAtAddress(this.address).then(function(successPrevAddr) {
-      onSuccess(this.address);
-    }.bind(this), function(successPrevAddr) {
-      this.refreshServerInfoAtAddress(this.hostname + '.local').then(function(successLocal) {
-        onSuccess(this.hostname + '.local');
+    this.refreshServerInfoAtAddress(this.address,this.ports).then(function(successPrevAddr,sucessPrevPorts) {
+      onSuccess(this.address,this.ports);
+    }.bind(this), function(successPrevAddr,sucessPrevPorts) {
+      this.refreshServerInfoAtAddress(this.hostname + '.local',this.hostports).then(function(successLocal,sucessPorts) {
+        onSuccess(this.hostname + '.local',this.hostports);
       }.bind(this), function(failureLocal) {
         this.refreshServerInfoAtAddress(this.externalIP).then(function(successExternal) {
           onSuccess(this.externalIP);
         }.bind(this), function(failureExternal) {
-          this.refreshServerInfoAtAddress(this.userEnteredAddress).then(function(successUserEntered) {
-            onSuccess(this.userEnteredAddress);
+          this.refreshServerInfoAtAddress(this.userEnteredAddress,this.ports).then(function(successUserEntered,ports) {
+            onSuccess(this.userEnteredAddress,this.ports);
           }.bind(this), function(failureUserEntered) {
             console.warn('%c[utils.js, utils.js,  selectServerAddress]', 'color: gray;', 'Failed to contact host ' + this.hostname, this);
             onFailure();
@@ -266,6 +269,7 @@ NvHTTP.prototype = {
   toString: function() {
     var string = '';
     string += 'server address: ' + this.address + '\r\n';
+    string += 'server ports: ' + this.ports + '\r\n';
     string += 'server UID: ' + this.serverUid + '\r\n';
     string += 'is paired: ' + this.paired + '\r\n';
     string += 'current game: ' + this.currentGame + '\r\n';
@@ -302,6 +306,7 @@ NvHTTP.prototype = {
     this.serverMajorVersion = parseInt(this.appVersion.substring(0, 1), 10);
     this.serverUid = $root.find('uniqueid').text().trim();
     this.hostname = $root.find('hostname').text().trim();
+    this.hostports = $root.find('hostports').text().trim();
 
     var externIP = $root.find('ExternalIP').text().trim();
     if (externIP) {
@@ -542,7 +547,7 @@ NvHTTP.prototype = {
       if (this.paired && this.ppkstr)
         return true;
 
-      return sendMessage('pair', [this.serverMajorVersion.toString(), this.address, randomNumber]).then(function(ppkstr) {
+      return sendMessage('pair', [this.serverMajorVersion.toString(), this.address, this.ports ,randomNumber]).then(function(ppkstr) {
         this.ppkstr = ppkstr;
         return sendMessage('openUrl', [this._baseUrlHttps + '/pair?uniqueid=' + this.clientUid + '&devicename=roth&updateState=1&phrase=pairchallenge', this.ppkstr, false]).then(function(ret) {
           $xml = this._parseXML(ret);

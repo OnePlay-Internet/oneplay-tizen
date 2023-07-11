@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(MoonlightWasm VERSION 1.0)
+project(OnePlayWASM VERSION 1.0)
 
 add_compile_options(-w -s WASM=1 -fno-ident -Os -flto -DSAMSUNG_WRT -DOS_WASM -DNDEBUG)
 

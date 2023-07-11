@@ -337,9 +337,9 @@ function addHost() {
   $('#continueAddHost').off('click');
   $('#continueAddHost').on('click', function() {
     var inputHost = $('#dialogInputHost').val();
-    var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost);
+    var _nvhttpHost = new NvHTTP(inputHost, myUniqueid, inputHost,inputports);
 
-    _nvhttpHost.refreshServerInfoAtAddress(inputHost).then(function(success) {
+    _nvhttpHost.refreshServerInfoAtAddress(inputHost,inputports).then(function(success) {
       modal.close();
       Navigation.pop();
 
@@ -348,6 +348,7 @@ function addHost() {
       if (hosts[_nvhttpHost.serverUid] != null) {
         // Update the addresses
         hosts[_nvhttpHost.serverUid].address = _nvhttpHost.address;
+        hosts[_nvhttpHost.serverUid].ports = _nvhttpHost.ports;
         hosts[_nvhttpHost.serverUid].userEnteredAddress = _nvhttpHost.userEnteredAddress;
 
         // Use the host in the array directly to ensure the PPK propagates after pairing
@@ -722,6 +723,7 @@ function startGame(host, appID) {
 
           sendMessage('startRequest', [
             host.address,
+            host.ports
             streamWidth,
             streamHeight,
             frameRate,
@@ -761,6 +763,7 @@ function startGame(host, appID) {
 
         sendMessage('startRequest', [
           host.address,
+          host.ports
           streamWidth,
           streamHeight,
           frameRate,
@@ -1305,7 +1308,7 @@ function loadHTTPCertsCb() {
       getData('hosts', function(previousValue) {
         hosts = previousValue.hosts != null ? previousValue.hosts : {};
         for (var hostUID in hosts) { // programmatically add each new host.
-          var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress);
+          var revivedHost = new NvHTTP(hosts[hostUID].address, myUniqueid, hosts[hostUID].userEnteredAddress;hosts[hostUID].ports);
           revivedHost.serverUid = hosts[hostUID].serverUid;
           revivedHost.externalIP = hosts[hostUID].externalIP;
           revivedHost.hostname = hosts[hostUID].hostname;
