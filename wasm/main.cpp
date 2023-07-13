@@ -181,7 +181,7 @@ MessageResult MoonlightInstance::StartStream(
     std::string host, std::string httpPort, std::string width, std::string height, std::string fps,
     std::string bitrate, std::string rikey, std::string rikeyid,
     std::string appversion, std::string gfeversion, bool framePacing,
-    bool audioSync) {
+    bool audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber) {
   PostToJs("Setting stream width to: " + width);
   PostToJs("Setting stream height to: " + height);
   PostToJs("Setting stream fps to: " + fps);
@@ -194,6 +194,10 @@ MessageResult MoonlightInstance::StartStream(
   PostToJs("Setting gfeversion to: " + gfeversion);
   PostToJs("Setting frame pacing to: " + std::to_string(framePacing));
   PostToJs("Setting audio syncing to: " + std::to_string(audioSync));
+  PostToJs("Setting rtspnumberport to: " + std::to_string(rtspnumberport));
+  PostToJs("Setting controlportnumber to: " + std::to_string(controlportnumber));
+  PostToJs("Setting audioportnumber to: " + std::to_string(audioportnumber));
+  PostToJs("Setting videoportnumber to: " + std::to_string(videoportnumber));
 
   // Populate the stream configuration
   LiInitializeStreamConfiguration(&m_StreamConfig);
@@ -292,6 +296,15 @@ bool MoonlightInstance::Init(uint32_t argc, const char* argn[],
   return true;
 }
 
+uint16_t str_to_uint16(const char *str){
+
+  char* end;
+  long val = strtol(str,&end,10);
+  return (uint16_t)val;
+  
+}
+  
+
 int main(int argc, char** argv) {
   g_Instance = new MoonlightInstance();
 
@@ -327,12 +340,18 @@ MessageResult startStream(std::string host, std::string httpPort, std::string wi
                           std::string bitrate, std::string rikey,
                           std::string rikeyid, std::string appversion,
                           std::string gfeversion, bool framePacing,
-                          bool audioSync) {
+                          bool audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber) {
   printf("%s host: %s w: %s h: %s\n", __func__, host.c_str(),
          width.c_str(), height.c_str());
+         
+         RtspPortNumber = str_to_uint16(&rtspnumberport);
+         ControlPortNumber = str_to_uint16(&controlportnumber);
+         AudioPortNumber = str_to_uint16(&audioportnumber);
+         VideoPortNumber = str_to_uint16(&videoportnumber);
+  
   return g_Instance->StartStream(host, httpPort, width, height, fps, bitrate, rikey,
                                  rikeyid, appversion, gfeversion, framePacing,
-                                 audioSync);
+                                 audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
 }
 
 MessageResult stopStream() { return g_Instance->StopStream(); }

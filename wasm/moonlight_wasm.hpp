@@ -63,7 +63,7 @@ class MoonlightInstance {
                             std::string bitrate, std::string rikey,
                             std::string rikeyid, std::string appversion,
                             std::string gfeversion, bool framePacing,
-                            bool audioSync);
+                            bool audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
   MessageResult StopStream();
 
   void STUN(int callbackId);
@@ -255,6 +255,8 @@ void PostPromiseMessage(int callbackId, const std::string& type,
 
 MessageResult makeCert();
 
+uint16_t str_to_uint16(const char *str);
+
 MessageResult httpInit(std::string cert, std::string privateKey,
                        std::string myUniqueId);
 void openUrl(int callbackId, std::string url, emscripten::val ppk,
@@ -265,7 +267,7 @@ MessageResult startStream(std::string host, std::string httpPort, std::string wi
                           std::string bitrate, std::string rikey,
                           std::string rikeyid, std::string appversion,
                           std::string gfeversion, bool framePacing,
-                          bool audioSync);
+                          bool audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
 MessageResult stopStream();
 
 void stun(int callbackId);
