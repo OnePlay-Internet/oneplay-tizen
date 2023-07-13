@@ -259,17 +259,17 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
     goto cleanup;
   }
   
-  unsigned char salt_pin[20];
+  unsigned char salt_pin[208];
   unsigned char aes_key_hash[32];
   AES_KEY enc_key, dec_key;
   memcpy(salt_pin, salt_data, 16);
-  memcpy(salt_pin+16, pin, 4);
+  memcpy(salt_pin+16, pin, 192);
 
-  int hash_length = serverMajorVersion >= 7 ? 32 : 20;
+  int hash_length = serverMajorVersion >= 7 ? 32 : 208;
   if (serverMajorVersion >= 7)
-    SHA256(salt_pin, 20, aes_key_hash);
+    SHA256(salt_pin, 208, aes_key_hash);
   else
-    SHA1(salt_pin, 20, aes_key_hash);
+    SHA1(salt_pin, 208, aes_key_hash);
 
   AES_set_encrypt_key((unsigned char *)aes_key_hash, 128, &enc_key);
   AES_set_decrypt_key((unsigned char *)aes_key_hash, 128, &dec_key);
@@ -289,6 +289,8 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
   result = NULL;
   if ((ret = xml_search(data->memory, data->size, "paired", &result)) != GS_OK)
     goto cleanup;
+
+  printf("data : mem->%s , size->%d\n",data->memory,data->size);
 
   if (strcmp(result, "1") != 0) {
     ret = GS_FAILED;
