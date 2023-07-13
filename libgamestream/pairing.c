@@ -225,7 +225,7 @@ int gs_unpair(const char* address, const char* port) {
   return ret;
 }
 
-int gs_pair(int serverMajorVersion, const char* address, const char* port, const char* token, char** curl_ppk_string) {
+int gs_pair(int serverMajorVersion, const char* address, const char* port, const char* hostSessionKey, char** curl_ppk_string) {
   int ret = GS_OK;
   char* result = NULL;
   X509* server_cert = NULL;
@@ -258,7 +258,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
     ret = GS_FAILED;
     goto cleanup;
   }
-
+  char pin[4] = "0000";
   unsigned char salt_pin[20];
   unsigned char aes_key_hash[32];
   AES_KEY enc_key, dec_key;
@@ -281,7 +281,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
   AES_encrypt(challenge_data, challenge_enc, &enc_key);
   bytes_to_hex(challenge_enc, challenge_hex, 16);
 
-  snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&clientchallenge=%s", address, port, g_UniqueId, challenge_hex);
+  snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&clientchallenge=%s", address, port, g_UniqueId, hostSessionKey);
   if ((ret = http_request(url, NULL, data)) != GS_OK)
     goto cleanup;
 
@@ -334,8 +334,12 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
     AES_encrypt(&challenge_response_hash[i], &challenge_response_hash_enc[i], &enc_key);
   }
   bytes_to_hex(challenge_response_hash_enc, challenge_response_hex, 32);
-
-  snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&serverchallengeresp=%s", address, port, g_UniqueId, challenge_response_hex);
+  
+  
+  //char challenge_token[strlen(result)];
+  //sscanf(result, "%s", challenge_token);
+  
+  snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&serverchallengeresp=%s", address, port, g_UniqueId, result);
   if ((ret = http_request(url, NULL, data)) != GS_OK)
     goto cleanup;
 
@@ -396,8 +400,8 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
   *curl_ppk_string = x509_to_curl_ppk_string(server_cert);
 
   cleanup:
-  if (ret != GS_OK)
-    gs_unpair(address, port);
+  //if (ret != GS_OK)
+    //gs_unpair(address, port);
   
   if (result != NULL)
     free(result);

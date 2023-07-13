@@ -58,7 +58,7 @@ class MoonlightInstance {
  public:
   explicit MoonlightInstance();
 
-  MessageResult StartStream(std::string host, std::string ports, std::string width,
+  MessageResult StartStream(std::string host, std::string httpport, std::string width,
                             std::string height, std::string fps,
                             std::string bitrate, std::string rikey,
                             std::string rikeyid, std::string appversion,
@@ -67,8 +67,8 @@ class MoonlightInstance {
   MessageResult StopStream();
 
   void STUN(int callbackId);
-  void Pair(int callbackId, std::string serverMajorVersion, std::string address, std::string ports,
-            std::string randomNumber);
+  void Pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
+            std::string hostSessionKey);
 
   virtual ~MoonlightInstance();
 
@@ -189,7 +189,7 @@ class MoonlightInstance {
                        bool binaryResponse);
   void STUN_private(int callbackId);
   void Pair_private(int callbackId, std::string serverMajorVersion,
-                    std::string address, std::string ports, std::string randomNumber);
+                    std::string address, std::string httpPort, std::string hostSessionKey);
 
   void LockMouse();
   void UnlockMouse();
@@ -199,7 +199,7 @@ class MoonlightInstance {
   static AUDIO_RENDERER_CALLBACKS s_ArCallbacks;
 
   std::string m_Host;
-  std::string m_ports;
+  std::string m_httpPort;
   std::string m_AppVersion;
   std::string m_GfeVersion;
   bool m_FramePacingEnabled;
@@ -260,7 +260,7 @@ MessageResult httpInit(std::string cert, std::string privateKey,
 void openUrl(int callbackId, std::string url, emscripten::val ppk,
              bool binaryResponse);
 
-MessageResult startStream(std::string host, std::string ports, std::string width,
+MessageResult startStream(std::string host, std::string httpPort, std::string width,
                           std::string height, std::string fps,
                           std::string bitrate, std::string rikey,
                           std::string rikeyid, std::string appversion,
@@ -269,8 +269,8 @@ MessageResult startStream(std::string host, std::string ports, std::string width
 MessageResult stopStream();
 
 void stun(int callbackId);
-void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string ports,
-          std::string randomNumber);
+void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
+          std::string hostSessionKey);
 
 EM_BOOL handleKeyDown(int eventType, const EmscriptenKeyboardEvent* keyEvent,
                       void* userData);

@@ -456,6 +456,9 @@ typedef struct _SERVER_INFORMATION {
     // Server host name or IP address in text form
     const char* address;
     
+    // Server port in text form
+    const char* httpPort;
+    
     // Text inside 'appversion' tag in /serverinfo
     const char* serverInfoAppVersion;
     
@@ -464,6 +467,7 @@ typedef struct _SERVER_INFORMATION {
 
     // Text inside 'sessionUrl0' tag in /resume and /launch (if present)
     const char* rtspSessionUrl;
+    
 } SERVER_INFORMATION, *PSERVER_INFORMATION;
 
 // Use this function to zero the server information when allocated on the stack or heap
