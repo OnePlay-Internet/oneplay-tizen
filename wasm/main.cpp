@@ -262,10 +262,10 @@ void MoonlightInstance::STUN(int callbackId) {
 void MoonlightInstance::Pair_private(int callbackId,
                                      std::string serverMajorVersion,
                                      std::string address, std::string httpPort,
-                                     std::string hostSessionKey) {
+                                     std::string pin) {
   char* ppkstr;
   int err = gs_pair(atoi(serverMajorVersion.c_str()), address.c_str(), httpPort.c_str(),
-                    hostSessionKey.c_str(), &ppkstr);
+                    pin.c_str(), &ppkstr);
 
   printf("pair address: %s result: %d ppkstr : %s\n", address.c_str(), err, ppkstr);
   if (err == 0) {
@@ -278,11 +278,11 @@ void MoonlightInstance::Pair_private(int callbackId,
 }
 
 void MoonlightInstance::Pair(int callbackId, std::string serverMajorVersion,
-                             std::string address, std::string httpPort,std::string hostSessionKey) {
+                             std::string address, std::string httpPort,std::string pin) {
   printf("%s address: %s\n", __func__, address.c_str());
   m_Dispatcher.post_job(
       std::bind(&MoonlightInstance::Pair_private, this, callbackId,
-                serverMajorVersion, address, httpPort, hostSessionKey),
+                serverMajorVersion, address, httpPort, pin),
       false);
 }
 
@@ -339,8 +339,8 @@ MessageResult stopStream() { return g_Instance->StopStream(); }
 void stun(int callbackId) { g_Instance->STUN(callbackId); }
 
 void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
-          std::string hostSessionKey) {
-  g_Instance->Pair(callbackId, serverMajorVersion, address, httpPort, hostSessionKey);
+          std::string pin) {
+  g_Instance->Pair(callbackId, serverMajorVersion, address, httpPort, pin);
 }
 
 void PostToJs(std::string msg) {

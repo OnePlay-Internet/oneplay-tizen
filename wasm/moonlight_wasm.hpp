@@ -68,7 +68,7 @@ class MoonlightInstance {
 
   void STUN(int callbackId);
   void Pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
-            std::string hostSessionKey);
+            std::string pin);
 
   virtual ~MoonlightInstance();
 
@@ -189,7 +189,7 @@ class MoonlightInstance {
                        bool binaryResponse);
   void STUN_private(int callbackId);
   void Pair_private(int callbackId, std::string serverMajorVersion,
-                    std::string address, std::string httpPort, std::string hostSessionKey);
+                    std::string address, std::string httpPort, std::string pin);
 
   void LockMouse();
   void UnlockMouse();
@@ -270,7 +270,7 @@ MessageResult stopStream();
 
 void stun(int callbackId);
 void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
-          std::string hostSessionKey);
+          std::string pin);
 
 EM_BOOL handleKeyDown(int eventType, const EmscriptenKeyboardEvent* keyEvent,
                       void* userData);

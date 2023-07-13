@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-int gs_pair(int serverMajorVersion, const char* address, const char* port, const char* hostSessionKey, char** server_cert_der_string);
+int gs_pair(int serverMajorVersion, const char* address, const char* port, const char* pin, char** server_cert_der_string);
 
 #ifdef __cplusplus
 }

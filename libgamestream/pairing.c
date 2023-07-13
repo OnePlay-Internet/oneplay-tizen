@@ -225,7 +225,7 @@ int gs_unpair(const char* address, const char* port) {
   return ret;
 }
 
-int gs_pair(int serverMajorVersion, const char* address, const char* port, const char* hostSessionKey, char** curl_ppk_string) {
+int gs_pair(int serverMajorVersion, const char* address, const char* port, const char* pin, char** curl_ppk_string) {
   int ret = GS_OK;
   char* result = NULL;
   X509* server_cert = NULL;
@@ -258,7 +258,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
     ret = GS_FAILED;
     goto cleanup;
   }
-  char pin[4] = "0000";
+  
   unsigned char salt_pin[20];
   unsigned char aes_key_hash[32];
   AES_KEY enc_key, dec_key;
@@ -281,7 +281,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
   AES_encrypt(challenge_data, challenge_enc, &enc_key);
   bytes_to_hex(challenge_enc, challenge_hex, 16);
 
-  snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&clientchallenge=%s", address, port, g_UniqueId, hostSessionKey);
+  snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&clientchallenge=%s", address, port, g_UniqueId, challenge_hex);
   if ((ret = http_request(url, NULL, data)) != GS_OK)
     goto cleanup;
 
@@ -335,11 +335,7 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
   }
   bytes_to_hex(challenge_response_hash_enc, challenge_response_hex, 32);
   
-  
-  //char challenge_token[strlen(result)];
-  //sscanf(result, "%s", challenge_token);
-  
-  snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&serverchallengeresp=%s", address, port, g_UniqueId, result);
+  snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&serverchallengeresp=%s", address, port, g_UniqueId, challenge_response_hex);
   if ((ret = http_request(url, NULL, data)) != GS_OK)
     goto cleanup;
 
@@ -385,25 +381,31 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
 
   snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&clientpairingsecret=%s", address, port, g_UniqueId, client_pairing_secret_hex);
   
-  if ((ret = http_request(url, NULL, data)) != GS_OK)
-    printf("ret : %d\n",ret);
+  if ((ret = http_request(url, NULL, data)) != GS_OK){
+    printf("ret1 : %d\n",ret);
     goto cleanup;
-
+  }
+  
   free(result);
   result = NULL;
-  if ((ret = xml_search(data->memory, data->size, "paired", &result)) != GS_OK)
-    goto cleanup;
-
-  if (strcmp(result, "1") != 0) {
-    ret = GS_FAILED;
+  if ((ret = xml_search(data->memory, data->size, "paired", &result)) != GS_OK){
+    printf("ret2 : %d\n",ret);
     goto cleanup;
   }
 
-  cleanup:
+  printf("result : %d\n",result);
+
+  if (strcmp(result, "1") != 0) {
+    printf("final pair step failed\n");
+    ret = GS_FAILED;
+    goto cleanup;
+  }
   
   *curl_ppk_string = x509_to_curl_ppk_string(server_cert);
-  printf("curl_ppk_string : %s",*curl_ppk_string);
+  printf("curl_ppk_string : %s\n",*curl_ppk_string);
   
+  cleanup:
+
   if (ret != GS_OK)
     gs_unpair(address, port);
   
