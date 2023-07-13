@@ -267,10 +267,11 @@ void MoonlightInstance::Pair_private(int callbackId,
   int err = gs_pair(atoi(serverMajorVersion.c_str()), address.c_str(), httpPort.c_str(),
                     hostSessionKey.c_str(), &ppkstr);
 
-  printf("pair address: %s result: %d\n", address.c_str(), err);
+  printf("pair address: %s result: %d ppkstr : %s\n", address.c_str(), err, ppkstr);
   if (err == 0) {
-    free(ppkstr);
+    //free(ppkstr);
     PostPromiseMessage(callbackId, "resolve", ppkstr);
+    free(ppkstr);
   } else {
     PostPromiseMessage(callbackId, "reject", std::to_string(err));
   }

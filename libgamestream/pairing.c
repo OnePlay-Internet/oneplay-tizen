@@ -384,7 +384,9 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
   bytes_to_hex(client_pairing_secret, client_pairing_secret_hex, 16 + 256);
 
   snprintf(url, sizeof(url), "http://%s:%s/pair?uniqueid=%s&devicename=roth&updateState=1&clientpairingsecret=%s", address, port, g_UniqueId, client_pairing_secret_hex);
+  
   if ((ret = http_request(url, NULL, data)) != GS_OK)
+    printf("ret : %d\n",ret);
     goto cleanup;
 
   free(result);
@@ -397,11 +399,13 @@ int gs_pair(int serverMajorVersion, const char* address, const char* port, const
     goto cleanup;
   }
 
-  *curl_ppk_string = x509_to_curl_ppk_string(server_cert);
-
   cleanup:
-  //if (ret != GS_OK)
-    //gs_unpair(address, port);
+  
+  *curl_ppk_string = x509_to_curl_ppk_string(server_cert);
+  printf("curl_ppk_string : %s",*curl_ppk_string);
+  
+  if (ret != GS_OK)
+    gs_unpair(address, port);
   
   if (result != NULL)
     free(result);
