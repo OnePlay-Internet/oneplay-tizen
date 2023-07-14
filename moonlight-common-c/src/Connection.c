@@ -240,9 +240,9 @@ int LiStartConnection(PSERVER_INFORMATION serverInfo, PSTREAM_CONFIGURATION stre
     RemoteAddrString = strdup(serverInfo->address);
 
     // The values in RTSP SETUP will be used to populate these.
-    VideoPortNumber = 0;
-    ControlPortNumber = 0;
-    AudioPortNumber = 0;
+    //VideoPortNumber = 0;
+    //ControlPortNumber = 0;
+    //AudioPortNumber = 0;
     
     // Parse RTSP port number from RTSP session URL
     if (!parseRtspPortNumberFromUrl(serverInfo->rtspSessionUrl, &RtspPortNumber)) {
