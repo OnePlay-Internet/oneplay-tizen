@@ -10,6 +10,7 @@
 #include <string>
 
 #include <Limelight.h>
+#include <Limelight-internal.h>
 #include <opus_multistream.h>
 
 #include "lib.hpp"
@@ -63,7 +64,7 @@ class MoonlightInstance {
                             std::string bitrate, std::string rikey,
                             std::string rikeyid, std::string appversion,
                             std::string gfeversion, bool framePacing,
-                            bool audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
+                            bool audioSync, std::string rtspurl, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
   MessageResult StopStream();
 
   void STUN(int callbackId);
@@ -202,6 +203,8 @@ class MoonlightInstance {
   std::string m_httpPort;
   std::string m_AppVersion;
   std::string m_GfeVersion;
+  std::string m_RtspUrl;
+  
   bool m_FramePacingEnabled;
   bool m_AudioSyncEnabled;
   STREAM_CONFIGURATION m_StreamConfig;
@@ -255,7 +258,7 @@ void PostPromiseMessage(int callbackId, const std::string& type,
 
 MessageResult makeCert();
 
-uint16_t str_to_uint16(const char *str);
+uint16_t str_to_uint16(std::string *str);
 
 MessageResult httpInit(std::string cert, std::string privateKey,
                        std::string myUniqueId);
@@ -267,7 +270,7 @@ MessageResult startStream(std::string host, std::string httpPort, std::string wi
                           std::string bitrate, std::string rikey,
                           std::string rikeyid, std::string appversion,
                           std::string gfeversion, bool framePacing,
-                          bool audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
+                          bool audioSync, std::string rtspurl, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
 MessageResult stopStream();
 
 void stun(int callbackId);

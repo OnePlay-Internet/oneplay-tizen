@@ -149,6 +149,7 @@ void* MoonlightInstance::ConnectionThreadFunc(void* context) {
   serverInfo.httpPort = me->m_httpPort.c_str();
   serverInfo.serverInfoAppVersion = me->m_AppVersion.c_str();
   serverInfo.serverInfoGfeVersion = me->m_GfeVersion.c_str();
+  serverInfo.rtspSessionUrl = me->m_RtspUrl.c_str();
 
   err = LiStartConnection(&serverInfo, &me->m_StreamConfig,
                           &MoonlightInstance::s_ClCallbacks,
@@ -181,7 +182,7 @@ MessageResult MoonlightInstance::StartStream(
     std::string host, std::string httpPort, std::string width, std::string height, std::string fps,
     std::string bitrate, std::string rikey, std::string rikeyid,
     std::string appversion, std::string gfeversion, bool framePacing,
-    bool audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber) {
+    bool audioSync, std::string rtspurl, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber) {
   PostToJs("Setting stream width to: " + width);
   PostToJs("Setting stream height to: " + height);
   PostToJs("Setting stream fps to: " + fps);
@@ -194,10 +195,10 @@ MessageResult MoonlightInstance::StartStream(
   PostToJs("Setting gfeversion to: " + gfeversion);
   PostToJs("Setting frame pacing to: " + std::to_string(framePacing));
   PostToJs("Setting audio syncing to: " + std::to_string(audioSync));
-  PostToJs("Setting rtspnumberport to: " + std::to_string(rtspnumberport));
-  PostToJs("Setting controlportnumber to: " + std::to_string(controlportnumber));
-  PostToJs("Setting audioportnumber to: " + std::to_string(audioportnumber));
-  PostToJs("Setting videoportnumber to: " + std::to_string(videoportnumber));
+  PostToJs("Setting RTSP URL to: " + rtspurl);
+  PostToJs("Setting controlportnumber to: " + controlportnumber);
+  PostToJs("Setting audioportnumber to: " + audioportnumber);
+  PostToJs("Setting videoportnumber to: " + videoportnumber);
 
   // Populate the stream configuration
   LiInitializeStreamConfiguration(&m_StreamConfig);
@@ -223,7 +224,8 @@ MessageResult MoonlightInstance::StartStream(
   m_GfeVersion = gfeversion;
   m_FramePacingEnabled = framePacing;
   m_AudioSyncEnabled = audioSync;
-
+  m_RtspUrl = rtspurl;
+  
   // Initialize the rendering surface before starting the connection
   if (InitializeRenderingSurface(m_StreamConfig.width, m_StreamConfig.height)) {
     // Start the worker thread to establish the connection
@@ -296,10 +298,10 @@ bool MoonlightInstance::Init(uint32_t argc, const char* argn[],
   return true;
 }
 
-uint16_t str_to_uint16(const char *str){
+uint16_t str_to_uint16(std::string *str){
 
   char* end;
-  long val = strtol(str,&end,10);
+  long val = strtol(str->c_str(),&end,10);
   return (uint16_t)val;
   
 }
@@ -340,18 +342,17 @@ MessageResult startStream(std::string host, std::string httpPort, std::string wi
                           std::string bitrate, std::string rikey,
                           std::string rikeyid, std::string appversion,
                           std::string gfeversion, bool framePacing,
-                          bool audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber) {
+                          bool audioSync, std::string rtspurl, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber) {
   printf("%s host: %s w: %s h: %s\n", __func__, host.c_str(),
          width.c_str(), height.c_str());
          
-         RtspPortNumber = str_to_uint16(&rtspnumberport);
          ControlPortNumber = str_to_uint16(&controlportnumber);
          AudioPortNumber = str_to_uint16(&audioportnumber);
          VideoPortNumber = str_to_uint16(&videoportnumber);
   
   return g_Instance->StartStream(host, httpPort, width, height, fps, bitrate, rikey,
                                  rikeyid, appversion, gfeversion, framePacing,
-                                 audioSync, std::string rtspnumberport, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
+                                 audioSync, rtspurl, controlportnumber, audioportnumber, videoportnumber);
 }
 
 MessageResult stopStream() { return g_Instance->StopStream(); }
