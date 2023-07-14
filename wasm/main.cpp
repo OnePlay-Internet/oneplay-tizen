@@ -349,7 +349,7 @@ MessageResult startStream(std::string host, std::string httpPort, std::string wi
          ControlPortNumber = str_to_uint16(&controlportnumber);
          AudioPortNumber = str_to_uint16(&audioportnumber);
          VideoPortNumber = str_to_uint16(&videoportnumber);
-         
+
          printf("ControlPortNumber : %d\n",ControlPortNumber);
          printf("AudioPortNumber : %d\n",AudioPortNumber);
          printf("VideoPortNumber : %d\n",VideoPortNumber);
