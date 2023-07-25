@@ -1189,8 +1189,8 @@ int startControlStream(void) {
 
 	printf("start control stream port number test : %d\n",ControlPortNumber);
 
-        //enet_address_set_address(&address, (struct sockaddr *)&RemoteAddr, RemoteAddrLen);
-        //enet_address_set_port(&address, ControlPortNumber);
+        enet_address_set_address(&address, (struct sockaddr *)&RemoteAddr, RemoteAddrLen);
+        enet_address_set_port(&address, ControlPortNumber);
 
         // Create a client that can use 1 outgoing connection and 1 channel
         client = enet_host_create(address.address.ss_family, NULL, 1, 1, 0, 0);
@@ -1252,7 +1252,7 @@ int startControlStream(void) {
         // NB: Do NOT use ControlPortNumber here. 47995 is correct for these old versions.
         LC_ASSERT(ControlPortNumber == 0);
         ctlSock = connectTcpSocket(&RemoteAddr, RemoteAddrLen,
-            47995, CONTROL_STREAM_TIMEOUT_SEC);
+            ControlPortNumber, CONTROL_STREAM_TIMEOUT_SEC);
         if (ctlSock == INVALID_SOCKET) {
             stopping = true;
             return LastSocketFail();

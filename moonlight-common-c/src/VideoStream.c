@@ -277,7 +277,7 @@ int startVideoStream(void* rendererContext, int drFlags) {
     if (AppVersionQuad[0] == 3) {
         // Connect this socket to open port 47998 for our ping thread
         firstFrameSocket = connectTcpSocket(&RemoteAddr, RemoteAddrLen,
-                                            FIRST_FRAME_PORT, FIRST_FRAME_TIMEOUT_SEC);
+                                            VideoPortNumber, FIRST_FRAME_TIMEOUT_SEC);
         if (firstFrameSocket == INVALID_SOCKET) {
             VideoCallbacks.stop();
             stopVideoDepacketizer();

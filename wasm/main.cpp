@@ -292,6 +292,24 @@ void MoonlightInstance::Pair(int callbackId, std::string serverMajorVersion,
       false);
 }
 
+void MoonlightInstance::VidStreamStats(){
+
+  //std::string resolution = std::string(s_Width)+std::string("x")+std::string(s_Height)+std::string(":");
+  std::string stats = std::string("stats:");
+  std::string last_input_received_at = std::string("None")+std::string(":");
+  std::string decoder = std::string("video/mp4; codecs=\"hev1.2.4.L120.B0\"")+std::string(":");
+  std::string received_fps = std::string(s_pktPts)+std::string(":");
+  std::string rendered_fps = std::string(s_pktPts)+std::string(":");
+  std::string net_drops = std::string("0")+std::string(":");
+  std::string net_latency = std::string("0")+std::string(":");
+  std::string variance = std::string("0")+std::string(":");
+  std::string decode_time = std::string(s_frameDuration);
+  
+  PostToJs(stats+last_input_received_at+decoder+received_fps+rendered_fps+net_drops+net_latency+variance+decode_time);
+  
+}
+
+
 bool MoonlightInstance::Init(uint32_t argc, const char* argn[],
                              const char* argv[]) {
   g_Instance = this;

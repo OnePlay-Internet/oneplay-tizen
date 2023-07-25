@@ -70,7 +70,7 @@ class MoonlightInstance {
   void STUN(int callbackId);
   void Pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
             std::string pin);
-
+  void VidStreamStats();
   virtual ~MoonlightInstance();
 
   bool Init(uint32_t argc, const char* argn[], const char* argv[]);
