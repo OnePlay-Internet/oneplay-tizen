@@ -70,7 +70,7 @@ class MoonlightInstance {
   void STUN(int callbackId);
   void Pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
             std::string pin);
-  void VidStreamStats();
+  MessageResult VidStreamStats();
   virtual ~MoonlightInstance();
 
   bool Init(uint32_t argc, const char* argn[], const char* argv[]);
@@ -83,7 +83,9 @@ class MoonlightInstance {
   EM_BOOL HandleKeyUp(const EmscriptenKeyboardEvent& event);
 
   void ReportMouseMovement();
-
+  
+  void sendEmulatedMouseEvent(short x, short y);
+  
   void PollGamepads();
 
   void MouseLockLost();
@@ -271,7 +273,10 @@ MessageResult startStream(std::string host, std::string httpPort, std::string wi
                           std::string rikeyid, std::string appversion,
                           std::string gfeversion, bool framePacing,
                           bool audioSync, std::string rtspurl, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
+                          
 MessageResult stopStream();
+
+MessageResult VidStreamStats();
 
 void stun(int callbackId);
 void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,

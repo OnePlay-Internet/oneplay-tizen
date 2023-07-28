@@ -1,5 +1,5 @@
 #include "moonlight_wasm.hpp"
-
+#include <cmath>
 #include <Limelight.h>
 
 #define KEY_PREFIX 0x80
@@ -181,6 +181,32 @@ void MoonlightInstance::ReportMouseMovement() {
     // to get actual scroll distance and use the high-res variant.
     LiSendHighResScrollEvent(m_AccumulatedTicks * 120);
     m_AccumulatedTicks = 0;
+  }
+}
+
+void MoonlightInstance::sendEmulatedMouseEvent(short x, short y) {
+
+  double vector[2];
+  double magnitude = 0;
+  
+	vector[0] = x;
+	vector[1] = y;
+	
+	vector[0] = vector[0]*(1 / 32766.0f);
+	vector[1] = vector[1]*(1 / 32766.0f);
+	
+	vector[0] = vector[0]*4;
+	vector[1] = vector[1]*4;
+	
+	magnitude = sqrt((vector[0]*vector[0])+(vector[1]*vector[1]));
+	
+  if ( magnitude > 0) {
+     // Move faster as the stick is pressed further from center
+     vector[0] = vector[0]*pow(magnitude,1);
+     vector[1] = vector[1]*pow(magnitude,1);
+     if (magnitude >= 1) {
+       LiSendMouseMoveEvent((short)vector[0], (short)-vector[1]);
+     }
   }
 }
 

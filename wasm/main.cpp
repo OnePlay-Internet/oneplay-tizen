@@ -128,7 +128,7 @@ void* MoonlightInstance::InputThreadFunc(void* context) {
   while (me->m_Running) {
     me->PollGamepads();
     me->ReportMouseMovement();
-
+    me->sendEmulatedMouseEvent(1,-1);
     // Poll every 5 ms
     usleep(5 * 1000);
   }
@@ -292,23 +292,45 @@ void MoonlightInstance::Pair(int callbackId, std::string serverMajorVersion,
       false);
 }
 
-void MoonlightInstance::VidStreamStats(){
+using TimeStamp = samsung::wasm::Seconds;
 
-  //std::string resolution = std::string(s_Width)+std::string("x")+std::string(s_Height)+std::string(":");
-  std::string stats = std::string("stats:");
-  std::string last_input_received_at = std::string("None")+std::string(":");
-  std::string decoder = std::string("video/mp4; codecs=\"hev1.2.4.L120.B0\"")+std::string(":");
-  std::string received_fps = std::string(s_pktPts)+std::string(":");
-  std::string rendered_fps = std::string(s_pktPts)+std::string(":");
-  std::string net_drops = std::string("0")+std::string(":");
-  std::string net_latency = std::string("0")+std::string(":");
-  std::string variance = std::string("0")+std::string(":");
-  std::string decode_time = std::string(s_frameDuration);
+extern uint32_t s_Width;
+extern uint32_t s_Height;
+extern uint32_t s_Framerate;
+extern TimeStamp s_frameDuration;
+extern TimeStamp s_pktPts;
+extern TimeStamp s_ptsDiff;
+extern TimeStamp s_lastSec;
+
+MessageResult MoonlightInstance::VidStreamStats(){
+
+  //std::string resolution = std::string(s_Width)+std::string("x")+std::string(s_Height);
+  std::string stats = std::string("stats");
+  std::string last_input_received_at = std::string("None");
+  std::string decoder = std::string("video/mp4; codecs=\"hev1.2.4.L120.B0\"");
+  std::string received_fps = std::to_string(s_pktPts.count());
+  std::string rendered_fps = std::to_string(s_pktPts.count());
+  std::string net_drops = std::string("0");
+  std::string net_latency = std::string("0");
+  std::string variance = std::string("0");
+  std::string decode_time = std::to_string(s_frameDuration.count());
   
-  PostToJs(stats+last_input_received_at+decoder+received_fps+rendered_fps+net_drops+net_latency+variance+decode_time);
+  PostToJs(stats+std::string(":")+last_input_received_at+std::string(":")+decoder+std::string(":")+received_fps+std::string(":")+rendered_fps+std::string(":")+net_drops+std::string(":")+net_latency+std::string(":")+variance+std::string(":")+decode_time);
+  
+  emscripten::val ret = emscripten::val::object();
+  ret.set("stats", emscripten::val(stats));
+  ret.set("last_input_received_at", emscripten::val(last_input_received_at));
+  ret.set("decoder", emscripten::val(decoder));
+  ret.set("received_fps", emscripten::val(received_fps));
+  ret.set("rendered_fps", emscripten::val(rendered_fps));
+  ret.set("net_drops", emscripten::val(net_drops));
+  ret.set("net_latency", emscripten::val(net_latency));
+  ret.set("variance", emscripten::val(variance));
+  ret.set("decode_time", emscripten::val(decode_time));
+
+  return MessageResult::Resolve(ret);
   
 }
-
 
 bool MoonlightInstance::Init(uint32_t argc, const char* argn[],
                              const char* argv[]) {
@@ -378,6 +400,9 @@ MessageResult startStream(std::string host, std::string httpPort, std::string wi
 }
 
 MessageResult stopStream() { return g_Instance->StopStream(); }
+
+MessageResult VidStreamStats() { return g_Instance->VidStreamStats(); }
+
 void stun(int callbackId) { g_Instance->STUN(callbackId); }
 
 void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
@@ -422,6 +447,7 @@ EMSCRIPTEN_BINDINGS(handle_message) {
       .field("type", &MessageResult::type)
       .field("ret", &MessageResult::ret);
 
+  emscripten::function("VidStreamStats", &VidStreamStats);
   emscripten::function("startStream", &startStream);
   emscripten::function("stopStream", &stopStream);
   emscripten::function("stun", &stun);

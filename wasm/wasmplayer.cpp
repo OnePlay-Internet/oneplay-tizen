@@ -30,17 +30,17 @@ static constexpr uint32_t kSampleRate = 48000;
 
 static bool s_FramePacingEnabled = false;
 
-static uint32_t s_Width = 0;
-static uint32_t s_Height = 0;
-static uint32_t s_Framerate = 0;
+uint32_t s_Width = 0;
+uint32_t s_Height = 0;
+uint32_t s_Framerate = 0;
 
 static std::vector<unsigned char> s_DecodeBuffer;
 
-static TimeStamp s_frameDuration;
-static TimeStamp s_pktPts;
+TimeStamp s_frameDuration;
+TimeStamp s_pktPts;
 
-static TimeStamp s_ptsDiff;
-static TimeStamp s_lastSec;
+TimeStamp s_ptsDiff;
+TimeStamp s_lastSec;
 
 static std::chrono::time_point<std::chrono::steady_clock> s_firstAppend;
 static std::chrono::time_point<std::chrono::steady_clock> s_lastTime;
