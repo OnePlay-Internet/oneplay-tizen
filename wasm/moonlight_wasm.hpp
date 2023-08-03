@@ -66,11 +66,14 @@ class MoonlightInstance {
                             std::string gfeversion, bool framePacing,
                             bool audioSync, std::string rtspurl, std::string controlportnumber, std::string audioportnumber, std::string videoportnumber);
   MessageResult StopStream();
+  MessageResult VidStreamStats();
+  MessageResult EnableEmulatedMouseEvent();
+  MessageResult SendKeyCodeToServer(std::string Keycode);
 
   void STUN(int callbackId);
   void Pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
             std::string pin);
-  MessageResult VidStreamStats();
+  
   virtual ~MoonlightInstance();
 
   bool Init(uint32_t argc, const char* argn[], const char* argv[]);
@@ -84,10 +87,13 @@ class MoonlightInstance {
 
   void ReportMouseMovement();
   
-  void sendEmulatedMouseEvent(short x, short y);
-  
   void PollGamepads();
-
+  
+  void sendEmulatedMouseEvent();
+  void sendEmulatedRightCLickMouseEvent();
+  void sendEmulatedLeftCLickMouseEvent();
+  void sendKeycode(std::string stringkeycode);
+  
   void MouseLockLost();
   void DidLockMouse(int32_t result);
 
@@ -277,6 +283,10 @@ MessageResult startStream(std::string host, std::string httpPort, std::string wi
 MessageResult stopStream();
 
 MessageResult VidStreamStats();
+
+MessageResult EnableEmulatedMouseEvent();
+
+MessageResult SendKeyCodeToServer(std::string Keycode);
 
 void stun(int callbackId);
 void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,

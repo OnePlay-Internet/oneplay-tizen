@@ -122,18 +122,54 @@ void* MoonlightInstance::StopThreadFunc(void* context) {
   return NULL;
 }
 
+bool EmulatedMouseActive = true;
+
 void* MoonlightInstance::InputThreadFunc(void* context) {
   MoonlightInstance* me = (MoonlightInstance*)context;
 
-  while (me->m_Running) {
+  while (me->m_Running){
+  
     me->PollGamepads();
     me->ReportMouseMovement();
-    me->sendEmulatedMouseEvent(1,-1);
+    
+    if(EmulatedMouseActive){
+      me->sendEmulatedMouseEvent();
+      me->sendEmulatedLeftCLickMouseEvent();
+      me->sendEmulatedRightCLickMouseEvent();
+    }
+    
     // Poll every 5 ms
     usleep(5 * 1000);
   }
 
   return NULL;
+}
+
+MessageResult MoonlightInstance::EnableEmulatedMouseEvent(){
+
+  if(EmulatedMouseActive){
+  
+    EmulatedMouseActive = false;
+    
+    emscripten::val ret = emscripten::val::object();
+    ret.set("EmulatedMouseActive", emscripten::val(EmulatedMouseActive));
+    return MessageResult::Resolve(ret);
+  }
+  
+  else{
+  
+    EmulatedMouseActive = true;
+    
+    emscripten::val ret = emscripten::val::object();
+    ret.set("EmulatedMouseActive", emscripten::val(EmulatedMouseActive));
+    return MessageResult::Resolve(ret);
+  }
+  
+}
+
+MessageResult MoonlightInstance::SendKeyCodeToServer(std::string Keycode){
+  sendKeycode(Keycode);
+  return MessageResult::Resolve();
 }
 
 void* MoonlightInstance::ConnectionThreadFunc(void* context) {
@@ -304,6 +340,11 @@ extern TimeStamp s_lastSec;
 
 MessageResult MoonlightInstance::VidStreamStats(){
 
+  uint32_t estimatedRtt = 0;
+  uint32_t estimatedRttVariance = 0;
+  
+  LiGetEstimatedRttInfo(&estimatedRtt,&estimatedRttVariance);
+
   //std::string resolution = std::string(s_Width)+std::string("x")+std::string(s_Height);
   std::string stats = std::string("stats");
   std::string last_input_received_at = std::string("None");
@@ -311,8 +352,8 @@ MessageResult MoonlightInstance::VidStreamStats(){
   std::string received_fps = std::to_string(s_pktPts.count());
   std::string rendered_fps = std::to_string(s_pktPts.count());
   std::string net_drops = std::string("0");
-  std::string net_latency = std::string("0");
-  std::string variance = std::string("0");
+  std::string net_latency = std::to_string(estimatedRtt);
+  std::string variance = std::to_string(estimatedRttVariance);
   std::string decode_time = std::to_string(s_frameDuration.count());
   
   PostToJs(stats+std::string(":")+last_input_received_at+std::string(":")+decoder+std::string(":")+received_fps+std::string(":")+rendered_fps+std::string(":")+net_drops+std::string(":")+net_latency+std::string(":")+variance+std::string(":")+decode_time);
@@ -403,6 +444,10 @@ MessageResult stopStream() { return g_Instance->StopStream(); }
 
 MessageResult VidStreamStats() { return g_Instance->VidStreamStats(); }
 
+MessageResult EnableEmulatedMouseEvent() { return g_Instance->EnableEmulatedMouseEvent(); }
+
+MessageResult SendKeyCodeToServer(std::string Keycode) { return g_Instance->SendKeyCodeToServer(Keycode); }
+
 void stun(int callbackId) { g_Instance->STUN(callbackId); }
 
 void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
@@ -448,6 +493,8 @@ EMSCRIPTEN_BINDINGS(handle_message) {
       .field("ret", &MessageResult::ret);
 
   emscripten::function("VidStreamStats", &VidStreamStats);
+  emscripten::function("EnableEmulatedMouseEvent",&EnableEmulatedMouseEvent);
+  emscripten::function("SendKeyCodeToServer",&SendKeyCodeToServer);
   emscripten::function("startStream", &startStream);
   emscripten::function("stopStream", &stopStream);
   emscripten::function("stun", &stun);

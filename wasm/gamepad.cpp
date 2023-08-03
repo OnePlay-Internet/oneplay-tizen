@@ -7,6 +7,12 @@
 #include <Limelight.h>
 #include <emscripten/emscripten.h>
 
+//usage for MouseEmulation from Controller
+short rightStickXemu;
+short rightStickYemu;
+int A_pressed;
+int B_pressed;
+
 // For explanation on ordering, see: https://www.w3.org/TR/gamepad/#remapping
 enum GamepadAxis {
   LeftX = 0,
@@ -56,6 +62,10 @@ static short GetButtonFlags(const EmscriptenGamepadEvent& gamepad) {
       result |= buttonMasks[i];
     }
   }
+  
+  A_pressed = gamepad.digitalButton[0];
+  B_pressed = gamepad.digitalButton[1];
+    
   return result;
 }
 
@@ -92,6 +102,10 @@ void MoonlightInstance::PollGamepads() {
       * std::numeric_limits<short>::max();
     const auto rightStickY = -gamepad.axis[GamepadAxis::RightY]
       * std::numeric_limits<short>::max();
+
+    rightStickXemu = rightStickX;
+    rightStickYemu = rightStickY;
+
 
     LiSendMultiControllerEvent(
         gamepadID, activeGamepadMask, buttonFlags, leftTrigger,

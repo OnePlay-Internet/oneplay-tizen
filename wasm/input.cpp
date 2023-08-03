@@ -4,6 +4,13 @@
 
 #define KEY_PREFIX 0x80
 
+extern short rightStickXemu;
+extern short rightStickYemu;
+extern int A_pressed;
+extern int B_pressed;
+int RightButtonDown = 0;
+int LeftButtonDown = 0;
+
 static int ConvertButtonToLiButton(unsigned short button) {
   switch (button) {
     case 0:
@@ -184,21 +191,20 @@ void MoonlightInstance::ReportMouseMovement() {
   }
 }
 
-void MoonlightInstance::sendEmulatedMouseEvent(short x, short y) {
+void MoonlightInstance::sendEmulatedMouseEvent() {
 
   double vector[2];
   double magnitude = 0;
   
-	vector[0] = x;
-	vector[1] = y;
-	
-	vector[0] = vector[0]*(1 / 32766.0f);
-	vector[1] = vector[1]*(1 / 32766.0f);
-	
-	vector[0] = vector[0]*4;
-	vector[1] = vector[1]*4;
-	
-	magnitude = sqrt((vector[0]*vector[0])+(vector[1]*vector[1]));
+  vector[0] = (double)rightStickXemu;
+  vector[1] = (double)rightStickYemu;
+  
+  vector[0] = vector[0]*(1 / 32766.0f);
+  vector[1] = vector[1]*(1 / 32766.0f);
+  vector[0] = vector[0]*4;
+  vector[1] = vector[1]*4;
+  
+  magnitude = sqrt((vector[0]*vector[0])+(vector[1]*vector[1]));
 	
   if ( magnitude > 0) {
      // Move faster as the stick is pressed further from center
@@ -208,6 +214,39 @@ void MoonlightInstance::sendEmulatedMouseEvent(short x, short y) {
        LiSendMouseMoveEvent((short)vector[0], (short)-vector[1]);
      }
   }
+}
+
+void MoonlightInstance::sendEmulatedRightCLickMouseEvent(){
+
+  if(A_pressed){
+    LiSendMouseButtonEvent(BUTTON_ACTION_PRESS,2);
+    RightButtonDown = 1;
+  }
+  else if(RightButtonDown && !A_pressed){
+    LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE,2);
+    RightButtonDown = 0;
+  }
+}
+
+void MoonlightInstance::sendEmulatedLeftCLickMouseEvent(){
+
+  if(B_pressed){
+    LiSendMouseButtonEvent(BUTTON_ACTION_PRESS,0);
+    LeftButtonDown = 1;
+  }
+  else if(LeftButtonDown && !B_pressed){
+    LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE,0);
+    LeftButtonDown = 0;
+  }
+}
+
+void MoonlightInstance::sendKeycode(std::string stringkeycode){
+  
+  short keyCode = static_cast<short>(std::strtoul(stringkeycode.c_str(), NULL, 0));
+  //char modifiers;
+  
+  LiSendKeyboardEvent(keyCode, KEY_ACTION_DOWN,0);
+  LiSendKeyboardEvent(keyCode, KEY_ACTION_UP,0);
 }
 
 void MoonlightInstance::LockMouse() {
