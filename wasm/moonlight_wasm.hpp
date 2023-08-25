@@ -68,7 +68,7 @@ class MoonlightInstance {
   MessageResult StopStream();
   MessageResult VidStreamStats();
   MessageResult EnableEmulatedMouseEvent();
-  MessageResult SendKeyCodeToServer(std::string Keycode);
+  MessageResult SendKeyCodeToServer(std::string Keycode,std::string modifiers);
 
   void STUN(int callbackId);
   void Pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,
@@ -92,7 +92,7 @@ class MoonlightInstance {
   void sendEmulatedMouseEvent();
   void sendEmulatedRightCLickMouseEvent();
   void sendEmulatedLeftCLickMouseEvent();
-  void sendKeycode(std::string stringkeycode);
+  void sendKeycode(std::string stringkeycode, std::string stringmodifiers);
   
   void MouseLockLost();
   void DidLockMouse(int32_t result);
@@ -286,7 +286,7 @@ MessageResult VidStreamStats();
 
 MessageResult EnableEmulatedMouseEvent();
 
-MessageResult SendKeyCodeToServer(std::string Keycode);
+MessageResult SendKeyCodeToServer(std::string Keycode,std::string modifiers);
 
 void stun(int callbackId);
 void pair(int callbackId, std::string serverMajorVersion, std::string address, std::string httpPort,

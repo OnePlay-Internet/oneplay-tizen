@@ -1,5 +1,6 @@
 #include "moonlight_wasm.hpp"
 #include <cmath>
+//#include <boost/lexical_cast.hpp>
 #include <Limelight.h>
 
 #define KEY_PREFIX 0x80
@@ -218,35 +219,35 @@ void MoonlightInstance::sendEmulatedMouseEvent() {
 
 void MoonlightInstance::sendEmulatedRightCLickMouseEvent(){
 
-  if(A_pressed){
-    LiSendMouseButtonEvent(BUTTON_ACTION_PRESS,2);
+  if(B_pressed){
+    LiSendMouseButtonEvent(BUTTON_ACTION_PRESS,BUTTON_RIGHT);
     RightButtonDown = 1;
   }
-  else if(RightButtonDown && !A_pressed){
-    LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE,2);
+  else if(RightButtonDown && !B_pressed){
+    LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE,BUTTON_RIGHT);
     RightButtonDown = 0;
   }
 }
 
 void MoonlightInstance::sendEmulatedLeftCLickMouseEvent(){
 
-  if(B_pressed){
-    LiSendMouseButtonEvent(BUTTON_ACTION_PRESS,0);
+  if(A_pressed){
+    LiSendMouseButtonEvent(BUTTON_ACTION_PRESS,BUTTON_LEFT);
     LeftButtonDown = 1;
   }
-  else if(LeftButtonDown && !B_pressed){
-    LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE,0);
+  else if(LeftButtonDown && !A_pressed){
+    LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE,BUTTON_LEFT);
     LeftButtonDown = 0;
   }
 }
 
-void MoonlightInstance::sendKeycode(std::string stringkeycode){
+void MoonlightInstance::sendKeycode(std::string stringkeycode, std::string stringmodifiers){
   
-  short keyCode = static_cast<short>(std::strtoul(stringkeycode.c_str(), NULL, 0));
-  //char modifiers;
+  uint32_t keyCode = static_cast<uint32_t>(std::stoul(stringkeycode.c_str(), NULL, 16));
+  char modifiers = static_cast<char>(std::stoul(stringmodifiers.c_str(), NULL, 16));
   
-  LiSendKeyboardEvent(keyCode, KEY_ACTION_DOWN,0);
-  LiSendKeyboardEvent(keyCode, KEY_ACTION_UP,0);
+  LiSendKeyboardEvent(KEY_PREFIX << 8 | keyCode, KEY_ACTION_DOWN,modifiers);
+  LiSendKeyboardEvent(KEY_PREFIX << 8 | keyCode, KEY_ACTION_UP,modifiers);
 }
 
 void MoonlightInstance::LockMouse() {

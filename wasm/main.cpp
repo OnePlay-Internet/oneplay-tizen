@@ -167,8 +167,8 @@ MessageResult MoonlightInstance::EnableEmulatedMouseEvent(){
   
 }
 
-MessageResult MoonlightInstance::SendKeyCodeToServer(std::string Keycode){
-  sendKeycode(Keycode);
+MessageResult MoonlightInstance::SendKeyCodeToServer(std::string Keycode,std::string modifiers){
+  sendKeycode(Keycode,modifiers);
   return MessageResult::Resolve();
 }
 
@@ -446,7 +446,7 @@ MessageResult VidStreamStats() { return g_Instance->VidStreamStats(); }
 
 MessageResult EnableEmulatedMouseEvent() { return g_Instance->EnableEmulatedMouseEvent(); }
 
-MessageResult SendKeyCodeToServer(std::string Keycode) { return g_Instance->SendKeyCodeToServer(Keycode); }
+MessageResult SendKeyCodeToServer(std::string Keycode, std::string modifiers) { return g_Instance->SendKeyCodeToServer(Keycode, modifiers); }
 
 void stun(int callbackId) { g_Instance->STUN(callbackId); }
 
